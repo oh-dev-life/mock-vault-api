@@ -163,15 +163,81 @@ curl http://localhost:3000/vaults/ZH-001/bars?owner_status=assigned&purity_min=0
 - `ZH-002` - 2 bars
 - `NY-001` - 1 bar
 
+## Deployment to Vercel
+
+### Prerequisites
+- Vercel account (sign up at https://vercel.com)
+- Vercel CLI (optional): `npm i -g vercel`
+
+### Deploy via Vercel Dashboard
+
+1. Push your code to GitHub (already done ✓)
+2. Go to https://vercel.com/new
+3. Import your GitHub repository: `oh-dev-life/mock-vault-api`
+4. Vercel will auto-detect the settings
+5. Click **Deploy**
+
+### Deploy via Vercel CLI
+
+```bash
+# Install Vercel CLI globally
+npm i -g vercel
+
+# Login to Vercel
+vercel login
+
+# Deploy
+vercel
+
+# Deploy to production
+vercel --prod
+```
+
+### Environment Variables (Optional)
+
+If you need to set environment variables in Vercel:
+1. Go to your project settings in Vercel dashboard
+2. Navigate to **Settings** → **Environment Variables**
+3. Add `PORT` or any other variables you need
+
+### Vercel Configuration
+
+The project includes:
+- **`vercel.json`** - Vercel deployment configuration
+- **`.vercelignore`** - Files to exclude from deployment
+- **`package.json`** - Updated with `vercel-build` script and Node.js version
+
+### Testing Your Deployment
+
+Once deployed, Vercel will provide a URL like:
+```
+https://mock-vault-api-xxx.vercel.app
+```
+
+Test the endpoints:
+```bash
+# Test root endpoint
+curl https://your-app.vercel.app/
+
+# Test Swagger docs
+https://your-app.vercel.app/api-docs
+
+# Test vault bars
+curl https://your-app.vercel.app/vaults/ZH-001/bars
+```
+
 ## Project Structure
 
 ```
 mock-vault-api/
 ├── index.js          # Main application file
 ├── package.json      # Dependencies and scripts
-├── .env             # Environment variables
+├── vercel.json       # Vercel deployment config
+├── .vercelignore     # Vercel ignore rules
+├── .env             # Environment variables (local)
 ├── .gitignore       # Git ignore rules
 ├── README.md        # This file
+├── swagger.js        # Swagger/OpenAPI configuration
 ├── data/
 │   └── mockData.js  # Mock vault and bar data
 └── routes/
