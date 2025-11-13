@@ -3,6 +3,7 @@ const express = require('express');
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./swagger');
 const vaultsRouter = require('./routes/vaults');
+const contractRouter = require('./routes/contract');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -24,6 +25,8 @@ app.get('/', (req, res) => {
       vaults: '/vaults',
       vault_bars: '/vaults/:vault_id/bars',
       vault_reserve: '/vaults/:vault_id/vault_reserve',
+      contract_vault_ounces: '/contract/vault-ounces',
+      contract_info: '/contract/info',
       health: '/health',
       swagger: '/api-docs'
     }
@@ -55,6 +58,7 @@ app.get('/health', (req, res) => {
 
 // API Routes
 app.use('/vaults', vaultsRouter);
+app.use('/contract', contractRouter);
 
 // 404 handler
 app.use((req, res) => {

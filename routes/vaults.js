@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { vaults } = require('../data/mockData');
+const { getVaultOunces } = require('../utils/contractReader');
 
 /**
  * @swagger
@@ -159,7 +160,7 @@ router.get('/:vault_id/bars', (req, res) => {
  * /vaults/{vault_id}/vault_reserve:
  *   get:
  *     summary: Get vault reserve information
- *     description: Return vault reserve with randomly generated data
+ *     description: Return vault reserve with total oz from smart contract and calculated weight in grams
  *     tags: [Vaults]
  *     parameters:
  *       - in: path
@@ -188,10 +189,14 @@ router.get('/:vault_id/bars', (req, res) => {
  *                 total_weight_oz:
  *                   type: number
  *                   example: 1610.6657
+ *                   description: Total oz from smart contract
+ *                 contract_source:
+ *                   type: boolean
+ *                   description: Whether data came from contract (true) or fallback (false)
  *       404:
  *         description: Vault not found
  */
-router.get('/:vault_id/vault_reserve', (req, res) => {
+router.get('/:vault_id/vault_reserve', async (req, res) => {
   const { vault_id } = req.params;
 
   // Check if vault exists
@@ -202,17 +207,40 @@ router.get('/:vault_id/vault_reserve', (req, res) => {
     });
   }
 
-  // Generate random data
-  const total_bars = Math.floor(Math.random() * 100) + 1; // Random between 1-100
-  const total_weight_grams = Math.floor(Math.random() * 100000) + 1000; // Random between 1000-101000
-  const total_weight_oz = parseFloat((total_weight_grams * 0.035274).toFixed(4));
+  try {
+    // Get total oz from smart contract
+    const contractData = await getVaultOunces();
+    const total_weight_oz = parseFloat(contractData.formatted);
+    
+    // Calculate total weight in grams from contract oz
+    // 1 troy ounce = 31.1034768 grams
+    const total_weight_grams = total_weight_oz * 31.1034768;
 
-  res.json({
-    vault_id,
-    total_bars,
-    total_weight_grams,
-    total_weight_oz
-  });
+    // Generate random total_bars (keeping this as random)
+    const total_bars = Math.floor(Math.random() * 100) + 1;
+
+    res.json({
+      vault_id,
+      total_bars,
+      total_weight_grams: parseFloat(total_weight_grams.toFixed(2)),
+      total_weight_oz: parseFloat(total_weight_oz.toFixed(4)),
+      contract_source: true
+    });
+  } catch (error) {
+    // Fallback to random data if contract call fails
+    const total_bars = Math.floor(Math.random() * 100) + 1;
+    const total_weight_grams = Math.floor(Math.random() * 100000) + 1000;
+    const total_weight_oz = parseFloat((total_weight_grams * 0.035274).toFixed(4));
+
+    res.json({
+      vault_id,
+      total_bars,
+      total_weight_grams,
+      total_weight_oz,
+      contract_source: false,
+      error: 'Using fallback calculation - contract unavailable'
+    });
+  }
 });
 
 /**
