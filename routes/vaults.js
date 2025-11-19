@@ -3,6 +3,9 @@ const router = express.Router();
 const { vaults } = require('../data/mockData');
 const { getVaultOunces } = require('../utils/contractReader');
 
+// Request counter for cyclic responses (cycles through 0-5)
+let vaultReserveRequestCounter = 0;
+
 /**
  * @swagger
  * /vaults/{vault_id}/bars:
@@ -207,6 +210,17 @@ router.get('/:vault_id/vault_reserve', async (req, res) => {
     });
   }
 
+  // Get current cycle position and increment counter
+  const currentCycle = vaultReserveRequestCounter % 6;
+  vaultReserveRequestCounter++;
+
+  // Cycle 0: Request timeout
+  if (currentCycle === 0) {
+    console.log(`[Cycle ${currentCycle}] Simulating timeout for vault_reserve request`);
+    // Simulate timeout - don't send response
+    return;
+  }
+
   try {
     // Get total oz from smart contract
     const contractData = await getVaultOunces();
@@ -219,18 +233,62 @@ router.get('/:vault_id/vault_reserve', async (req, res) => {
     // Generate random total_bars (keeping this as random)
     const total_bars = Math.floor(Math.random() * 100) + 1;
 
+    let modifiedOz = total_weight_oz;
+    let cycleInfo = '';
+
+    // Apply modifications based on cycle
+    if (currentCycle === 1) {
+      // Cycle 1: Return total_weight_oz - 1
+      modifiedOz = total_weight_oz - 1;
+      cycleInfo = 'total_weight_oz - 1';
+      console.log(`[Cycle ${currentCycle}] Returning ${cycleInfo}`);
+    } else if (currentCycle === 2) {
+      // Cycle 2: Return total_weight_oz + 1
+      modifiedOz = total_weight_oz + 1;
+      cycleInfo = 'total_weight_oz + 1';
+      console.log(`[Cycle ${currentCycle}] Returning ${cycleInfo}`);
+    } else {
+      // Cycles 3, 4, 5: Return normal result
+      cycleInfo = 'normal';
+      console.log(`[Cycle ${currentCycle}] Returning normal result`);
+    }
+
+    // Recalculate grams based on modified oz
+    const modifiedGrams = modifiedOz * 31.1034768;
+
     res.json({
       vault_id,
       total_bars,
-      total_weight_grams: parseFloat(total_weight_grams.toFixed(2)),
-      total_weight_oz: parseFloat(total_weight_oz.toFixed(4)),
-      contract_source: true
+      total_weight_grams: parseFloat(modifiedGrams.toFixed(2)),
+      total_weight_oz: parseFloat(modifiedOz.toFixed(4)),
+      contract_source: true,
+      cycle_info: {
+        cycle: currentCycle,
+        type: cycleInfo,
+        total_requests: vaultReserveRequestCounter
+      }
     });
   } catch (error) {
     // Fallback to random data if contract call fails
     const total_bars = Math.floor(Math.random() * 100) + 1;
     const total_weight_grams = Math.floor(Math.random() * 100000) + 1000;
-    const total_weight_oz = parseFloat((total_weight_grams * 0.035274).toFixed(4));
+    let total_weight_oz = parseFloat((total_weight_grams * 0.035274).toFixed(4));
+
+    let cycleInfo = '';
+
+    // Apply modifications based on cycle
+    if (currentCycle === 1) {
+      total_weight_oz -= 1;
+      cycleInfo = 'total_weight_oz - 1 (fallback)';
+      console.log(`[Cycle ${currentCycle}] Fallback: Returning ${cycleInfo}`);
+    } else if (currentCycle === 2) {
+      total_weight_oz += 1;
+      cycleInfo = 'total_weight_oz + 1 (fallback)';
+      console.log(`[Cycle ${currentCycle}] Fallback: Returning ${cycleInfo}`);
+    } else {
+      cycleInfo = 'normal (fallback)';
+      console.log(`[Cycle ${currentCycle}] Fallback: Returning normal result`);
+    }
 
     res.json({
       vault_id,
@@ -238,7 +296,12 @@ router.get('/:vault_id/vault_reserve', async (req, res) => {
       total_weight_grams,
       total_weight_oz,
       contract_source: false,
-      error: 'Using fallback calculation - contract unavailable'
+      error: 'Using fallback calculation - contract unavailable',
+      cycle_info: {
+        cycle: currentCycle,
+        type: cycleInfo,
+        total_requests: vaultReserveRequestCounter
+      }
     });
   }
 });
