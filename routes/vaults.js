@@ -3,7 +3,7 @@ const router = express.Router();
 const { vaults } = require('../data/mockData');
 const { getVaultOunces } = require('../utils/contractReader');
 
-// Request counter for cyclic responses (cycles through 0-5)
+// Request counter for cyclic responses (cycles through 0-4)
 let vaultReserveRequestCounter = 0;
 
 /**
@@ -211,15 +211,8 @@ router.get('/:vault_id/vault_reserve', async (req, res) => {
   }
 
   // Get current cycle position and increment counter
-  const currentCycle = vaultReserveRequestCounter % 6;
+  const currentCycle = vaultReserveRequestCounter % 5;
   vaultReserveRequestCounter++;
-
-  // Cycle 0: Request timeout
-  if (currentCycle === 0) {
-    console.log(`[Cycle ${currentCycle}] Simulating timeout for vault_reserve request`);
-    // Simulate timeout - don't send response
-    return;
-  }
 
   try {
     // Get total oz from smart contract
@@ -237,18 +230,18 @@ router.get('/:vault_id/vault_reserve', async (req, res) => {
     let cycleInfo = '';
 
     // Apply modifications based on cycle
-    if (currentCycle === 1) {
-      // Cycle 1: Return total_weight_oz - 1
+    if (currentCycle === 0) {
+      // Cycle 0: Return total_weight_oz - 1
       modifiedOz = total_weight_oz - 1;
       cycleInfo = 'total_weight_oz - 1';
       console.log(`[Cycle ${currentCycle}] Returning ${cycleInfo}`);
-    } else if (currentCycle === 2) {
-      // Cycle 2: Return total_weight_oz + 1
+    } else if (currentCycle === 1) {
+      // Cycle 1: Return total_weight_oz + 1
       modifiedOz = total_weight_oz + 1;
       cycleInfo = 'total_weight_oz + 1';
       console.log(`[Cycle ${currentCycle}] Returning ${cycleInfo}`);
     } else {
-      // Cycles 3, 4, 5: Return normal result
+      // Cycles 2, 3, 4: Return normal result
       cycleInfo = 'normal';
       console.log(`[Cycle ${currentCycle}] Returning normal result`);
     }
@@ -277,11 +270,11 @@ router.get('/:vault_id/vault_reserve', async (req, res) => {
     let cycleInfo = '';
 
     // Apply modifications based on cycle
-    if (currentCycle === 1) {
+    if (currentCycle === 0) {
       total_weight_oz -= 1;
       cycleInfo = 'total_weight_oz - 1 (fallback)';
       console.log(`[Cycle ${currentCycle}] Fallback: Returning ${cycleInfo}`);
-    } else if (currentCycle === 2) {
+    } else if (currentCycle === 1) {
       total_weight_oz += 1;
       cycleInfo = 'total_weight_oz + 1 (fallback)';
       console.log(`[Cycle ${currentCycle}] Fallback: Returning ${cycleInfo}`);
