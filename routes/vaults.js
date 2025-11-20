@@ -230,12 +230,13 @@ router.get('/:vault_id/vault_reserve', async (req, res) => {
     let cycleInfo = '';
 
     // Apply modifications based on cycle
+    // if (currentCycle === 0) {
+    //   // Cycle 0: Return total_weight_oz - 1
+    //   modifiedOz = total_weight_oz - 1;
+    //   cycleInfo = 'total_weight_oz - 1';
+    //   console.log(`[Cycle ${currentCycle}] Returning ${cycleInfo}`);
+    // } else 
     if (currentCycle === 0) {
-      // Cycle 0: Return total_weight_oz - 1
-      modifiedOz = total_weight_oz - 1;
-      cycleInfo = 'total_weight_oz - 1';
-      console.log(`[Cycle ${currentCycle}] Returning ${cycleInfo}`);
-    } else if (currentCycle === 1) {
       // Cycle 1: Return total_weight_oz + 1
       modifiedOz = total_weight_oz + 1;
       cycleInfo = 'total_weight_oz + 1';
@@ -270,11 +271,12 @@ router.get('/:vault_id/vault_reserve', async (req, res) => {
     let cycleInfo = '';
 
     // Apply modifications based on cycle
+    // if (currentCycle === 0) {
+    //   total_weight_oz -= 1;
+    //   cycleInfo = 'total_weight_oz - 1 (fallback)';
+    //   console.log(`[Cycle ${currentCycle}] Fallback: Returning ${cycleInfo}`);
+    // } else if (currentCycle === 1) {
     if (currentCycle === 0) {
-      total_weight_oz -= 1;
-      cycleInfo = 'total_weight_oz - 1 (fallback)';
-      console.log(`[Cycle ${currentCycle}] Fallback: Returning ${cycleInfo}`);
-    } else if (currentCycle === 1) {
       total_weight_oz += 1;
       cycleInfo = 'total_weight_oz + 1 (fallback)';
       console.log(`[Cycle ${currentCycle}] Fallback: Returning ${cycleInfo}`);
