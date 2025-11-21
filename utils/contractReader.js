@@ -5,7 +5,7 @@ const VaultFaucetAbi = require('../data/VaultFaucetAbi.json');
  * Configuration for the contract
  */
 const CONTRACT_CONFIG = {
-  address: '0x2d21A6737832896526839A56Eee0544c9cc1F724',
+  address: '0x5313BC6Fca048258aedA94C05b68C17A376Ab555',
   chainId: 11155111, // Sepolia testnet
   rpcUrl: 'https://eth-sepolia.g.alchemy.com/v2/demo' // Public RPC endpoint
 };
