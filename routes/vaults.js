@@ -201,6 +201,7 @@ router.get('/:vault_id/bars', (req, res) => {
  */
 router.get('/:vault_id/vault_reserve', async (req, res) => {
   const { vault_id } = req.params;
+  throw new Error('Vault not found');
 
   // Check if vault exists
   if (!vaults[vault_id]) {
